@@ -90,7 +90,12 @@ const iniciarApp = () => {
     const mostrarRecetaModal = (receta) => {
         console.log(receta)
         const {idMeal, strInstructions, strMeal, strMealThumb} = receta
-        const modalTitle = document.querySelector(".modal .modal-title")
+        const modalHeader = document.querySelector(".modal-header")
+        limpiarHTML(modalHeader)
+        const modalTitle = document.createElement("h1")
+        modalTitle.classList.add("modal-title", "fs-3", "font-bold")
+        modalTitle.id = "staticBackdropLabel"
+        modalHeader.appendChild(modalTitle)
         const modalBody = document.querySelector(".modal .modal-body")
         modalTitle.textContent = strMeal
         modalBody.innerHTML = `
@@ -117,20 +122,22 @@ const iniciarApp = () => {
 
         // Mostramos los botones 
         const modalFooter = document.querySelector(".modal-footer")
+
         // Limpiamos footer para que no se dupliquen los botones
         limpiarHTML(modalFooter)
+
         // Btn favorito
         const btnFavorito = document.createElement("button")
-        existeFavorito(idMeal) 
-            ? btnFavorito.classList.add("btn", "btn-warning", "col")
-            : btnFavorito.classList.add("btn", "btn-danger", "col")
-        btnFavorito.textContent = existeFavorito(idMeal)
-            ? "Eliminar favorito"
-            : "Guardar favorito"
+        const isFavorito = existeFavorito(idMeal)
+        const iconClass = isFavorito ? "bi-heart-fill" : "bi-heart"
+        btnFavorito.classList.add("btn", isFavorito ? "btn-warning" : "btn-danger")
+        btnFavorito.innerHTML = `<i class="bi ${iconClass}"></i>`
+        modalHeader.appendChild(btnFavorito)
+        
         btnFavorito.onclick = () => {
             if(existeFavorito(idMeal)){
                 eliminarFavorito(idMeal)
-                btnFavorito.textContent = "Guardar favorito"
+                btnFavorito.innerHTML = `<i class="bi bi-heart"></i>`
                 btnFavorito.classList.remove("btn-warning")
                 btnFavorito.classList.add("btn-danger")
                 return
@@ -140,12 +147,10 @@ const iniciarApp = () => {
                 name: strMeal,
                 img: strMealThumb
             })
-            btnFavorito.textContent = "Borrar favorito"
+            btnFavorito.innerHTML = `<i class="bi bi-heart-fill"></i>`
             btnFavorito.classList.add("btn-warning")
             btnFavorito.classList.remove("btn-danger")
         }
-
-        modalFooter.appendChild(btnFavorito)
 
         // Btn cerrar
         const btnCerrar = document.createElement("button")
