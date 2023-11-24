@@ -152,6 +152,80 @@ const iniciarApp = () => {
             btnFavorito.classList.remove("btn-danger")
         }
 
+        const btnAgregarAMenu = document.createElement("button")
+        btnAgregarAMenu.classList.add("btn", "col", "btn-danger")
+        btnAgregarAMenu.textContent = "Añadir a Menú"
+        btnAgregarAMenu.onclick = () => {
+            limpiarHTML(modalBody)
+            btnAgregarAMenu.textContent = "Añadir"
+            const formMenu = document.createElement("form")
+            const tituloDia = document.createElement("h5")
+            tituloDia.textContent = "Día de la Semana"
+            tituloDia.classList.add("modal-title", "fs-3", "font-bold")
+            formMenu.appendChild(tituloDia)
+            formMenu.appendChild(document.createElement("hr"))
+
+            formMenu.classList.add("form-check", "form-check-inline", "w-100")
+            const opcionesDia = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+            opcionesDia.forEach((opcion) => {
+                const inputRadio = document.createElement("input")
+                inputRadio.classList.add("form-check-input")
+                inputRadio.type = "radio"
+                inputRadio.name = "opcionDia"
+                inputRadio.value = opcion
+                const labelRadio = document.createElement("label")
+                labelRadio.classList.add("form-check-label")
+                labelRadio.textContent = opcion
+
+                // Añadir el input y el label al formulario
+                formMenu.appendChild(inputRadio)
+                formMenu.appendChild(labelRadio)
+                formMenu.appendChild(document.createElement("br"))
+            })
+
+            const tituloHorario = document.createElement("h5")
+            tituloHorario.textContent = "Hora del día"
+            tituloHorario.classList.add("modal-title", "fs-3", "font-bold", "p-1")
+            formMenu.appendChild(tituloHorario)
+            formMenu.appendChild(document.createElement("hr"))
+
+            const opcionesHorario = ["Desayuno", "Almuerzo", "Cena"]
+            opcionesHorario.forEach((opcion) => {
+                const inputRadio = document.createElement("input")
+                inputRadio.classList.add("form-check-input")
+                inputRadio.type = "radio"
+                inputRadio.name = "opcion"
+                inputRadio.value = opcion
+                const labelRadio = document.createElement("label")
+                labelRadio.classList.add("form-check-label")
+                labelRadio.textContent = opcion
+
+                // Añadir el input y el label al formulario
+                formMenu.appendChild(inputRadio)
+                formMenu.appendChild(labelRadio)
+                formMenu.appendChild(document.createElement("br"))
+            })
+            modalBody.appendChild(formMenu)
+            btnAgregarAMenu.addEventListener("click", () => {
+                const opcionDiaSeleccionada = formMenu.querySelector('input[name="opcionDia"]:checked')
+                const opcionHorarioSeleccionada = formMenu.querySelector('input[name="opcion"]:checked')
+                console.log(opcionDiaSeleccionada)
+                console.log(opcionHorarioSeleccionada)
+                if(opcionDiaSeleccionada && opcionHorarioSeleccionada) {
+                    btnAgregarAMenu.classList.remove("btn-danger")
+                    btnAgregarAMenu.classList.add("btn-success")
+                    btnAgregarAMenu.textContent = '¡Añadido!'
+                    mostrarToast("La receta se ha añadido correctamente al menú semanal.")
+                } else {
+                    btnAgregarAMenu.classList.remove("btn-success")
+                    btnAgregarAMenu.classList.add("btn-danger")
+                    btnAgregarAMenu.textContent = 'Añadir'
+                    mostrarToast("No se ha podido añadir la receta al menú semanal. Por favor, rellene todos los campos.")
+                }
+            })
+        }
+        modalFooter.appendChild(btnAgregarAMenu)
+
         // Btn cerrar
         const btnCerrar = document.createElement("button")
         btnCerrar.classList.add("btn", "btn-secondary", "col")
