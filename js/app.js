@@ -27,6 +27,7 @@ const iniciarApp = () => {
     }
 
     // SELECTORES
+    const tableMenu = document.querySelector("table#menu")
     const resultado = document.querySelector("#resultado")
 
     // INSTANCIAMOS EL MODAL
@@ -38,6 +39,12 @@ const iniciarApp = () => {
         while(selector.firstChild) {
             selector.removeChild(selector.firstChild)
         }
+    }
+
+    const limpiarTablaMenu = (table) => {
+        table.querySelectorAll("td").forEach((celda) => {
+            celda.innerHTML = ""
+        })
     }
 
     // MUESTRA CATEGORIAS
@@ -79,11 +86,60 @@ const iniciarApp = () => {
         }
     }
 
+
     const agregarFavorito = (receta) => {
         // operador nullish coalescing
         const favorito = JSON.parse(localStorage.getItem("recetasFavoritos")) ?? [] // Si es null devuelve lista vacia
         localStorage.setItem("recetasFavoritos", JSON.stringify([...favorito, receta]))
         mostrarToast(`Se ha añadido a favoritos la receta ${receta.name}`)
+    }
+
+    const eliminarRecetaDeMenu = (receta) => {
+        const favoritos = JSON.parse(localStorage.getItem("recetasMenu")) ?? [] // Si es null devuelve lista vacia
+        const nuevasRecetasMenu = favoritos.filter((favorito) => favorito.value !== receta.value)
+        localStorage.setItem("recetasMenu", JSON.stringify(nuevasRecetasMenu))
+    }
+
+    const agregarRecetaAMenuSemanal = (receta) => {
+        const menuSemanal = JSON.parse(localStorage.getItem("recetasMenu")) ?? []
+        localStorage.setItem("recetasMenu", JSON.stringify([...menuSemanal, receta]))
+        mostrarToast("La receta se ha añadido correctamente al menú semanal.")
+    }
+
+    const compruebaCasillaMenu = (receta) => {
+        const recetasMenu = JSON.parse(localStorage.getItem("recetasMenu")) ?? []
+
+        for (const recetaMenu of recetasMenu) {
+            console.log(recetaMenu.value)
+            console.log(receta.value)
+            if (recetaMenu.value === receta.value) {
+                const confirmar = window.confirm("Ya tiene asignada una receta para esta hora y día, ¿quieres cambiarla por esta?")
+                if (confirmar) {
+                    eliminarRecetaDeMenu(receta)
+                    agregarRecetaAMenuSemanal(receta)
+                }
+                return
+            }
+        }
+    
+        agregarRecetaAMenuSemanal(receta)
+    }
+    
+
+    const mostrarTablaMenu = () => {
+        const recetasMenu = JSON.parse(localStorage.getItem("recetasMenu")) ?? []
+        if(recetasMenu.length){
+            recetasMenu.forEach((receta) => {
+                const td = document.querySelector(`#${receta.value}`)
+                td.classList.add("align-middle", "text-center", "fw-semibold")
+                const span = document.createElement('span')
+                span.textContent = receta.strMeal
+                span.addEventListener('click', () => {
+                    mostrarRecetaModal(receta)
+                })
+                td.appendChild(span)
+            })
+        }
     }
 
     // MUESTRA RECETA MODAL
@@ -152,79 +208,90 @@ const iniciarApp = () => {
             btnFavorito.classList.remove("btn-danger")
         }
 
-        const btnAgregarAMenu = document.createElement("button")
-        btnAgregarAMenu.classList.add("btn", "col", "btn-danger")
-        btnAgregarAMenu.textContent = "Añadir a Menú"
-        btnAgregarAMenu.onclick = () => {
-            limpiarHTML(modalBody)
-            btnAgregarAMenu.textContent = "Añadir"
-            const formMenu = document.createElement("form")
-            const tituloDia = document.createElement("h5")
-            tituloDia.textContent = "Día de la Semana"
-            tituloDia.classList.add("modal-title", "fs-3", "font-bold")
-            formMenu.appendChild(tituloDia)
-            formMenu.appendChild(document.createElement("hr"))
-
-            formMenu.classList.add("form-check", "form-check-inline", "w-100")
-            const opcionesDia = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
-            opcionesDia.forEach((opcion) => {
-                const inputRadio = document.createElement("input")
-                inputRadio.classList.add("form-check-input")
-                inputRadio.type = "radio"
-                inputRadio.name = "opcionDia"
-                inputRadio.value = opcion
-                const labelRadio = document.createElement("label")
-                labelRadio.classList.add("form-check-label")
-                labelRadio.textContent = opcion
-
-                // Añadir el input y el label al formulario
-                formMenu.appendChild(inputRadio)
-                formMenu.appendChild(labelRadio)
-                formMenu.appendChild(document.createElement("br"))
-            })
-
-            const tituloHorario = document.createElement("h5")
-            tituloHorario.textContent = "Hora del día"
-            tituloHorario.classList.add("modal-title", "fs-3", "font-bold", "p-1")
-            formMenu.appendChild(tituloHorario)
-            formMenu.appendChild(document.createElement("hr"))
-
-            const opcionesHorario = ["Desayuno", "Almuerzo", "Cena"]
-            opcionesHorario.forEach((opcion) => {
-                const inputRadio = document.createElement("input")
-                inputRadio.classList.add("form-check-input")
-                inputRadio.type = "radio"
-                inputRadio.name = "opcion"
-                inputRadio.value = opcion
-                const labelRadio = document.createElement("label")
-                labelRadio.classList.add("form-check-label")
-                labelRadio.textContent = opcion
-
-                // Añadir el input y el label al formulario
-                formMenu.appendChild(inputRadio)
-                formMenu.appendChild(labelRadio)
-                formMenu.appendChild(document.createElement("br"))
-            })
-            modalBody.appendChild(formMenu)
-            btnAgregarAMenu.addEventListener("click", () => {
-                const opcionDiaSeleccionada = formMenu.querySelector('input[name="opcionDia"]:checked')
-                const opcionHorarioSeleccionada = formMenu.querySelector('input[name="opcion"]:checked')
-                console.log(opcionDiaSeleccionada)
-                console.log(opcionHorarioSeleccionada)
-                if(opcionDiaSeleccionada && opcionHorarioSeleccionada) {
-                    btnAgregarAMenu.classList.remove("btn-danger")
-                    btnAgregarAMenu.classList.add("btn-success")
-                    btnAgregarAMenu.textContent = '¡Añadido!'
-                    mostrarToast("La receta se ha añadido correctamente al menú semanal.")
-                } else {
-                    btnAgregarAMenu.classList.remove("btn-success")
-                    btnAgregarAMenu.classList.add("btn-danger")
-                    btnAgregarAMenu.textContent = 'Añadir'
-                    mostrarToast("No se ha podido añadir la receta al menú semanal. Por favor, rellene todos los campos.")
-                }
-            })
+        const btnMenu = document.createElement("button")
+        btnMenu.classList.add("btn", "col", "btn-danger")
+        if(!tableMenu){
+            btnMenu.textContent = "Añadir a Menú"
+            btnMenu.onclick = () => {
+                limpiarHTML(modalBody)
+                btnMenu.textContent = "Añadir"
+                const formMenu = document.createElement("form")
+                const tituloDia = document.createElement("h5")
+                tituloDia.textContent = "Día de la Semana"
+                tituloDia.classList.add("modal-title", "fs-3", "font-bold")
+                formMenu.appendChild(tituloDia)
+                formMenu.appendChild(document.createElement("hr"))
+    
+                formMenu.classList.add("form-check", "form-check-inline", "w-100")
+                const opcionesDia = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+                opcionesDia.forEach((opcion) => {
+                    const inputRadio = document.createElement("input")
+                    inputRadio.classList.add("form-check-input")
+                    inputRadio.type = "radio"
+                    inputRadio.name = "opcionDia"
+                    inputRadio.value = opcion
+                    const labelRadio = document.createElement("label")
+                    labelRadio.classList.add("form-check-label")
+                    labelRadio.textContent = opcion
+    
+                    // Añadir el input y el label al formulario
+                    formMenu.appendChild(inputRadio)
+                    formMenu.appendChild(labelRadio)
+                    formMenu.appendChild(document.createElement("br"))
+                })
+    
+                const tituloHorario = document.createElement("h5")
+                tituloHorario.textContent = "Hora del día"
+                tituloHorario.classList.add("modal-title", "fs-3", "font-bold", "p-1")
+                formMenu.appendChild(tituloHorario)
+                formMenu.appendChild(document.createElement("hr"))
+    
+                const opcionesHorario = ["Desayuno", "Almuerzo", "Cena"]
+                opcionesHorario.forEach((opcion) => {
+                    const inputRadio = document.createElement("input")
+                    inputRadio.classList.add("form-check-input")
+                    inputRadio.type = "radio"
+                    inputRadio.name = "opcion"
+                    inputRadio.value = opcion
+                    const labelRadio = document.createElement("label")
+                    labelRadio.classList.add("form-check-label")
+                    labelRadio.textContent = opcion
+    
+                    // Añadir el input y el label al formulario
+                    formMenu.appendChild(inputRadio)
+                    formMenu.appendChild(labelRadio)
+                    formMenu.appendChild(document.createElement("br"))
+                })
+                modalBody.appendChild(formMenu)
+                btnMenu.addEventListener("click", () => {
+                    const opcionDiaSeleccionada = formMenu.querySelector('input[name="opcionDia"]:checked')
+                    const opcionHorarioSeleccionada = formMenu.querySelector('input[name="opcion"]:checked')
+                    console.log(opcionDiaSeleccionada)
+                    console.log(opcionHorarioSeleccionada)
+                    console.log(receta)
+                    if(opcionDiaSeleccionada && opcionHorarioSeleccionada) {
+                        btnMenu.classList.remove("btn-danger")
+                        btnMenu.classList.add("btn-success")
+                        btnMenu.textContent = '¡Añadido!'
+                        modal.hide()
+                        receta.value = opcionDiaSeleccionada.value + opcionHorarioSeleccionada.value
+                        compruebaCasillaMenu(receta)
+                    } else {
+                        mostrarToast("No se ha podido añadir la receta al menú semanal. Por favor, rellene todos los campos.")
+                    }
+                })
+            }
+        } else {
+            btnMenu.textContent = "Eliminar de Menú"
+            btnMenu.onclick = () => {
+                eliminarRecetaDeMenu(receta)
+                limpiarTablaMenu(tableMenu)
+                mostrarTablaMenu()
+                modal.hide()
+            }
         }
-        modalFooter.appendChild(btnAgregarAMenu)
+        
+        modalFooter.appendChild(btnMenu)
 
         // Btn cerrar
         const btnCerrar = document.createElement("button")
@@ -307,6 +374,9 @@ const iniciarApp = () => {
         }
     }
 
+    if(tableMenu){
+        mostrarTablaMenu()
+    }
     const favoritosDiv = document.querySelector(".favoritos")
     if(favoritosDiv){
         obtenerFavoritos()
