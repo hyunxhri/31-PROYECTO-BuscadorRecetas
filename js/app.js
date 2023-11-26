@@ -100,6 +100,11 @@ const iniciarApp = () => {
         mostrarToast(`La receta ${receta.strMeal} ha sido eliminada del menú.`)
     }
 
+    const eliminarTodasLasRecetasDeMenu = () => {
+        localStorage.removeItem("recetasMenu")
+        mostrarToast("Todas las recetas han sido eliminadas del menú.")
+    }
+
     //Comprueba si el value de la receta está ya en el LS, ya que el value será el td en el que irá la receta.
     const compruebaCasillaMenu = (receta) => {
         const recetasMenu = JSON.parse(localStorage.getItem("recetasMenu")) ?? []
@@ -370,6 +375,11 @@ const iniciarApp = () => {
 
     if(tableMenu){
         rellenaTablaMenu()
+        const table = document.querySelector("table#menu")
+        const btnResetearMenu = document.querySelector("#btnResetearMenu")
+        btnResetearMenu.addEventListener("click", () => {
+            eliminarTodasLasRecetasDeMenu()
+            limpiarTablaMenu(table)})
     }
     const favoritosDiv = document.querySelector(".favoritos")
     if(favoritosDiv){
