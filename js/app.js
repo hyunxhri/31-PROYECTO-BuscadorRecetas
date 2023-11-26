@@ -11,7 +11,7 @@ const iniciarApp = () => {
             .then((datos) => mostrarCategorias(datos.categories))
     } 
 
-    // OBTIENE LAS RECETAS DE UNA CATEGORIA
+    // Obtiene las recetas de una categoría
     const obtenerRecetas = (e) => {
         const categoria = e.target.value
         url = `https://www.themealdb.com/api/json/v1/1/filter.php?c=${categoria}`
@@ -26,14 +26,10 @@ const iniciarApp = () => {
         obtenerCategorias()
     }
 
-    // SELECTORES
     const tableMenu = document.querySelector("table#menu")
     const resultado = document.querySelector("#resultado")
-
-    // INSTANCIAMOS EL MODAL
+    // Instanciamos el modal en bootstrap
     const modal = new bootstrap.Modal("#modal", {})
-
-    // LIMPIA HTML
 
     const limpiarHTML = (selector) => {
         while(selector.firstChild) {
@@ -41,15 +37,14 @@ const iniciarApp = () => {
         }
     }
 
+    //Limpia todos los td de la tabla.
     const limpiarTablaMenu = (table) => {
         table.querySelectorAll("td").forEach((celda) => {
             celda.innerHTML = ""
         })
     }
 
-    // MUESTRA CATEGORIAS
     const mostrarCategorias = (categorias) => {
-        //console.log(categorias)
         categorias.forEach(categoria => {
             const option = document.createElement("option")
             option.value = categoria.strCategory
@@ -58,7 +53,7 @@ const iniciarApp = () => {
         })
     }
 
-    // MUESTRA TOAST (MENSAJE EMERGENTE)
+    // Toast = mensaje emergente
     const mostrarToast = (mensaje) => {
         const toastDiv = document.querySelector("#toast")
         const toastDivBody = document.querySelector(".toast-body")
@@ -67,37 +62,29 @@ const iniciarApp = () => {
         toast.show()
     }
 
-    // COMPRUEBA SI EXISTE FAVORITO
     const existeFavorito = (id) => {
         const favoritos = JSON.parse(localStorage.getItem("recetasFavoritos")) ?? [] // Si es null devuelve lista vacia
-        // si alguno de los favoritos id coincide con id entonces es true
+        // si alguno de los id de los favoritos coincide con el id que recibe la función, entonces es true
         return favoritos.some((favorito) => favorito.id === id)
     }
-
-    // ELIMINA UN FAVORITO
 
     const eliminarFavorito = (id) => {
         const favoritos = JSON.parse(localStorage.getItem("recetasFavoritos")) ?? [] // Si es null devuelve lista vacia
         const nuevosFavoritos = favoritos.filter((favorito) => favorito.id !== id)
         localStorage.setItem("recetasFavoritos", JSON.stringify(nuevosFavoritos))
         mostrarToast(`Se ha eliminado de favoritos la receta.`)
+        cuentaFavoritos()
         if(favoritosDiv){
             mostrarRecetas(nuevosFavoritos)
         }
     }
-
 
     const agregarFavorito = (receta) => {
         // operador nullish coalescing
         const favorito = JSON.parse(localStorage.getItem("recetasFavoritos")) ?? [] // Si es null devuelve lista vacia
         localStorage.setItem("recetasFavoritos", JSON.stringify([...favorito, receta]))
         mostrarToast(`Se ha añadido a favoritos la receta ${receta.name}`)
-    }
-
-    const eliminarRecetaDeMenu = (receta) => {
-        const favoritos = JSON.parse(localStorage.getItem("recetasMenu")) ?? [] // Si es null devuelve lista vacia
-        const nuevasRecetasMenu = favoritos.filter((favorito) => favorito.value !== receta.value)
-        localStorage.setItem("recetasMenu", JSON.stringify(nuevasRecetasMenu))
+        cuentaFavoritos()
     }
 
     const agregarRecetaAMenuSemanal = (receta) => {
@@ -106,12 +93,18 @@ const iniciarApp = () => {
         mostrarToast("La receta se ha añadido correctamente al menú semanal.")
     }
 
+    const eliminarRecetaDeMenu = (receta) => {
+        const favoritos = JSON.parse(localStorage.getItem("recetasMenu")) ?? [] // Si es null devuelve lista vacia
+        const nuevasRecetasMenu = favoritos.filter((favorito) => favorito.value !== receta.value)
+        localStorage.setItem("recetasMenu", JSON.stringify(nuevasRecetasMenu))
+        mostrarToast(`La receta ${receta.strMeal} ha sido eliminada del menú.`)
+    }
+
+    //Comprueba si el value de la receta está ya en el LS, ya que el value será el td en el que irá la receta.
     const compruebaCasillaMenu = (receta) => {
         const recetasMenu = JSON.parse(localStorage.getItem("recetasMenu")) ?? []
 
         for (const recetaMenu of recetasMenu) {
-            console.log(recetaMenu.value)
-            console.log(receta.value)
             if (recetaMenu.value === receta.value) {
                 const confirmar = window.confirm("Ya tiene asignada una receta para esta hora y día, ¿quieres cambiarla por esta?")
                 if (confirmar) {
@@ -121,12 +114,11 @@ const iniciarApp = () => {
                 return
             }
         }
-    
         agregarRecetaAMenuSemanal(receta)
     }
     
-
-    const mostrarTablaMenu = () => {
+    //Rellena la tabla con los menus que se han almacenado en el LS, utilizando value para saber la posición.
+    const rellenaTablaMenu = () => {
         const recetasMenu = JSON.parse(localStorage.getItem("recetasMenu")) ?? []
         if(recetasMenu.length){
             recetasMenu.forEach((receta) => {
@@ -142,11 +134,24 @@ const iniciarApp = () => {
         }
     }
 
-    // MUESTRA RECETA MODAL
+    const crearRadioInput = (name, opcion) => {
+        const inputRadio = document.createElement("input")
+        inputRadio.classList.add("form-check-input")
+        inputRadio.type = "radio"
+        inputRadio.name = name
+        inputRadio.value = opcion
+    
+        const labelRadio = document.createElement("label")
+        labelRadio.classList.add("form-check-label")
+        labelRadio.textContent = opcion
+    
+        return [inputRadio, labelRadio]
+    }
+
     const mostrarRecetaModal = (receta) => {
-        console.log(receta)
         const {idMeal, strInstructions, strMeal, strMealThumb} = receta
         const modalHeader = document.querySelector(".modal-header")
+        //Limpiamos header para que no se duplique el título y el botón
         limpiarHTML(modalHeader)
         const modalTitle = document.createElement("h1")
         modalTitle.classList.add("modal-title", "fs-3", "font-bold")
@@ -176,15 +181,13 @@ const iniciarApp = () => {
         }
         modalBody.appendChild(listGroup)
 
-        // Mostramos los botones 
         const modalFooter = document.querySelector(".modal-footer")
-
         // Limpiamos footer para que no se dupliquen los botones
         limpiarHTML(modalFooter)
 
-        // Btn favorito
         const btnFavorito = document.createElement("button")
         const isFavorito = existeFavorito(idMeal)
+        // Si es favorito el corazón sale rellenado, si no, el corazón sale sin rellenar
         const iconClass = isFavorito ? "bi-heart-fill" : "bi-heart"
         btnFavorito.classList.add("btn", isFavorito ? "btn-warning" : "btn-danger")
         btnFavorito.innerHTML = `<i class="bi ${iconClass}"></i>`
@@ -210,6 +213,7 @@ const iniciarApp = () => {
 
         const btnMenu = document.createElement("button")
         btnMenu.classList.add("btn", "col", "btn-danger")
+        // Comprobamos si no está tableMenu ya que entonces el modal se vería con el botón de eliminar receta del menu
         if(!tableMenu){
             btnMenu.textContent = "Añadir a Menú"
             btnMenu.onclick = () => {
@@ -225,16 +229,7 @@ const iniciarApp = () => {
                 formMenu.classList.add("form-check", "form-check-inline", "w-100")
                 const opcionesDia = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
                 opcionesDia.forEach((opcion) => {
-                    const inputRadio = document.createElement("input")
-                    inputRadio.classList.add("form-check-input")
-                    inputRadio.type = "radio"
-                    inputRadio.name = "opcionDia"
-                    inputRadio.value = opcion
-                    const labelRadio = document.createElement("label")
-                    labelRadio.classList.add("form-check-label")
-                    labelRadio.textContent = opcion
-    
-                    // Añadir el input y el label al formulario
+                    const [inputRadio, labelRadio] = crearRadioInput("opcionDia", opcion)
                     formMenu.appendChild(inputRadio)
                     formMenu.appendChild(labelRadio)
                     formMenu.appendChild(document.createElement("br"))
@@ -248,16 +243,8 @@ const iniciarApp = () => {
     
                 const opcionesHorario = ["Desayuno", "Almuerzo", "Cena"]
                 opcionesHorario.forEach((opcion) => {
-                    const inputRadio = document.createElement("input")
-                    inputRadio.classList.add("form-check-input")
-                    inputRadio.type = "radio"
-                    inputRadio.name = "opcion"
-                    inputRadio.value = opcion
-                    const labelRadio = document.createElement("label")
-                    labelRadio.classList.add("form-check-label")
-                    labelRadio.textContent = opcion
-    
-                    // Añadir el input y el label al formulario
+                    const [inputRadio, labelRadio] = crearRadioInput("opcion", opcion)
+
                     formMenu.appendChild(inputRadio)
                     formMenu.appendChild(labelRadio)
                     formMenu.appendChild(document.createElement("br"))
@@ -286,7 +273,7 @@ const iniciarApp = () => {
             btnMenu.onclick = () => {
                 eliminarRecetaDeMenu(receta)
                 limpiarTablaMenu(tableMenu)
-                mostrarTablaMenu()
+                rellenaTablaMenu()
                 modal.hide()
             }
         }
@@ -306,8 +293,6 @@ const iniciarApp = () => {
         modal.show()
     }    
 
-    // SELECCIONAR RECETA
-
     const seleccionarReceta = (id) => {
         const url = `https://www.themealdb.com/api/json/v1/1/lookup.php?i=${id}`
         fetch(url)
@@ -315,11 +300,20 @@ const iniciarApp = () => {
             .then((datos) => mostrarRecetaModal(datos.meals[0]))   
     }
 
-    // MUESTRA LAS RECETAS
+    const cuentaFavoritos = () => {
+        const favoritos = JSON.parse(localStorage.getItem("recetasFavoritos")) ?? []
+        const enlaceNavbarFavoritos = document.querySelector('.nav-link[href="favoritos.html"]')
+        if(favoritos.length){
+            //Pongo el query con el enlace para que no me pille el de inicio que sería el primero
+            enlaceNavbarFavoritos.textContent = `Mis favoritos: ${favoritos.length}`
+        } else {
+            enlaceNavbarFavoritos.textContent = `Mis favoritos`
+        }
+    }
 
+    // MUESTRA LAS RECETAS
     const mostrarRecetas = (recetas = []) => { // Ponemos por defecto una lista vacía por si acaso hay una categoría sin recetas.
         limpiarHTML(resultado)
-        
         recetas.forEach(receta => {
             const contenedorRecetas = document.createElement("div")
             contenedorRecetas.classList.add("col-md-4")
@@ -375,14 +369,16 @@ const iniciarApp = () => {
     }
 
     if(tableMenu){
-        mostrarTablaMenu()
+        rellenaTablaMenu()
     }
     const favoritosDiv = document.querySelector(".favoritos")
     if(favoritosDiv){
         obtenerFavoritos()
     }
+
+    cuentaFavoritos()
 }
 
-// LISTENERS
+
 document.addEventListener("DOMContentLoaded", iniciarApp)
 
